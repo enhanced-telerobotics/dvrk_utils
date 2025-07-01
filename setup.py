@@ -25,6 +25,7 @@ setup(
         'console_scripts': [
             'tf_listener = dvrk_utils.tf_listener:main',
             'tf_publisher = dvrk_utils.tf_publisher:main',
+            'init_robot = dvrk_utils.init_robot:main',
         ],
     },
 )
