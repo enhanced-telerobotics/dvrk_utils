@@ -23,6 +23,31 @@ source ~/ros2_ws/install/setup.bash
 
 ### 1. TF Listener
 
+#### a. Use the node instance
+```
+from spatialmath import SE3, SO3
+
+from dvrk_utils.tf_listener import TransformRetriever
+from dvrk_utils.utils import (
+    stamped_to_se3,
+    frame_to_se3,
+    se3_to_frame,
+)
+```
+
+```
+node = TransformRetriever()
+camera_T_center = stamped_to_se3(node.get_transform("ECM", "Center"))
+
+center_T_peg1 = SE3.Rx(np.pi)
+center_T_peg1.t[0] += 0.0125
+
+camera_T_peg1 = camera_T_center @ center_T_peg1
+psm1.move_cp(se3_to_frame(camera_T_peg1))
+```
+
+#### b. Check though CLI
+
 The `tf_listener` node retrieves and displays the transform between two frames. Example usage:
 
 ```bash
