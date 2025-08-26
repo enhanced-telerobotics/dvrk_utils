@@ -3,6 +3,7 @@ from rclpy.node import Node
 from rclpy.duration import Duration
 from tf2_ros import Buffer, TransformListener
 from geometry_msgs.msg import TransformStamped
+from typing import Union
 
 
 class TransformRetriever(Node):
@@ -13,22 +14,35 @@ class TransformRetriever(Node):
             self.tf_buffer, self, spin_thread=True)
 
     def get_transform(self,
-                      parent_frame,
-                      child_frame) -> TransformStamped:
-        while rclpy.ok():
-            try:
-                transform = self.tf_buffer.lookup_transform(
-                    parent_frame,
-                    child_frame,
-                    rclpy.time.Time(),
-                    timeout=Duration(seconds=1.0)
-                )
-                self.tf_buffer.clear()
+                      parent_frame: str,
+                      child_frame: str,
+                      timeout: float = 1/30) -> Union[TransformStamped, None]:
+        try:
+            transform = self.tf_buffer.lookup_transform(
+                parent_frame,
+                child_frame,
+                rclpy.time.Time(),
+                timeout=Duration(seconds=timeout)
+            )
+            self.tf_buffer.clear()
 
-                self.get_logger().debug(f"Transform received: {transform}")
+            self.get_logger().debug(f"Transform received: {transform}")
+            return transform
+        except Exception as e:
+            self.get_logger().debug(f"Transform not available: {e}")
+            return None
+
+    def wait_for_transform(self,
+                           parent_frame: str,
+                           child_frame: str) -> TransformStamped:
+        while rclpy.ok():
+            transform = self.get_transform(
+                parent_frame,
+                child_frame,
+                timeout=1.0
+            )
+            if transform is not None:
                 return transform
-            except Exception as e:
-                self.get_logger().info(f"Waiting for transform: {e}")
 
     def destroy_node(self):
         if hasattr(self.tf_listener, 'executor') and self.tf_listener.executor is not None:
@@ -51,7 +65,7 @@ def main():
 
     node = TransformRetriever()
     try:
-        transform = node.get_transform(parent_frame, child_frame)
+        transform = node.wait_for_transform(parent_frame, child_frame)
         transform = stamped_to_se3(transform)
         node.get_logger().info(
             f"Transform from {parent_frame} to {child_frame}: \n{transform}")
