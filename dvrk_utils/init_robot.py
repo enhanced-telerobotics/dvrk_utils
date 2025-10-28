@@ -5,7 +5,7 @@ import numpy as np
 
 
 ECM_CONFIG = np.deg2rad([0, -15, np.rad2deg(0.02), 0])
-PSM1_CONFIG = np.deg2rad([50, -5, np.rad2deg(0.14), 20, 15, 0])
+PSM1_CONFIG = np.deg2rad([46, -5, np.rad2deg(0.12), 40, -30, 0])
 
 
 def main():
@@ -43,7 +43,7 @@ def is_homed(arms):
 def move(arms):
     arms[0].move_jp(ECM_CONFIG)
     arms[1].move_jp(PSM1_CONFIG)
-    arms[1].jaw.open()
+    arms[1].jaw.move_jp(np.deg2rad([30]))
 
 def check(arms, threshold: float = 5e-2) -> bool:
     ecm_jp = arms[0].measured_jp()
