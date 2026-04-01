@@ -1,16 +1,11 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from pathlib import Path
-import os
-from glob import glob
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-from ament_index_python.packages import get_package_share_directory
-
 def generate_launch_description():
-    package_share_directory = get_package_share_directory('dvrk_utils')
-    transform_file_paths = glob(os.path.join(package_share_directory, 'resource', '*.npy'))
+    transform_file_paths = sorted(Path('~/.ros/tf_static').expanduser().glob('*.npy'))
 
     transform_nodes = []
     for i, file_path in enumerate(transform_file_paths):
@@ -18,11 +13,10 @@ def generate_launch_description():
         T = np.load(file_path)
         translation = T[:3, 3]
         rotation = R.from_matrix(T[:3, :3]).as_quat()
-        print(T)
 
         # Extract parent and child frame names from the file name
-        file_path = Path(file_path).expanduser()
         parent_frame, child_frame = file_path.stem.split("_T_", maxsplit=1)
+        print(f"Loaded transform from {file_path}: {parent_frame} -> {child_frame}")
 
         node = Node(
                 package='tf2_ros',

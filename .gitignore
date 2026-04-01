@@ -1,6 +1,9 @@
 # Workspace
 .vscode
 test
+*.npy
+tf_static
+tf_static/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

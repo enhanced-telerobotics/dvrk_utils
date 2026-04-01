@@ -1,13 +1,9 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
-import os
-from glob import glob
-
-from ament_index_python.packages import get_package_share_directory
+from pathlib import Path
 
 def generate_launch_description():
-    package_share_directory = get_package_share_directory('dvrk_utils')
-    transform_file_paths = glob(os.path.join(package_share_directory, 'resource', '*.npy'))
+    transform_file_paths = sorted(Path('~/.ros/tf_static').expanduser().glob('*.npy'))
 
     transform_nodes = []
     for i, transform_file_path in enumerate(transform_file_paths):
