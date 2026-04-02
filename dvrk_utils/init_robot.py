@@ -14,7 +14,7 @@ from dvrk_utils import frame_to_se3, se3_to_frame
 DEFAULT_CONFIG_JSON = Path('~/.ros') / 'dvrk_configs' / 'shuyuan.json'
 
 
-def main(config_json: Optional[str] = None):
+def main(config_json: Optional[str] = None) -> None:
     if config_json is None:
         config_json = parse_args().config_json
 
@@ -24,11 +24,14 @@ def main(config_json: Optional[str] = None):
     ral.check_connections()
     ral.spin()
 
+    # Startup console and arms
     console = dvrk.console(ral, 'console')
+    console.teleop_stop()
+    console.power_on()
     arms = build_arms(ral, config)
 
     while not is_homed(arms):
-        home_all(console)
+        home_all(console, config)
         time.sleep(5)
 
     while not check(arms, config):
@@ -38,7 +41,7 @@ def main(config_json: Optional[str] = None):
     ral.shutdown()
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description='Initialize dVRK arms from a JSON config file.')
     parser.add_argument(
@@ -50,41 +53,46 @@ def parse_args():
     return args
 
 
-def load_config(config_json):
+def load_config(config_json: str) -> dict:
     config_path = Path(config_json).expanduser().resolve()
     with config_path.open('r', encoding='utf-8') as file_handle:
         return json5.load(file_handle)
 
 
-def build_arms(ral, config):
+def build_arms(ral, config: dict) -> dict:
     arms = {}
     for arm_name in config:
-        arms[arm_name] = create_arm(ral, arm_name)
+        arm = create_arm(ral, arm_name)
+        if arm is not None:
+            arms[arm_name] = arm
     return arms
 
 
-def create_arm(ral, arm_name):
+def create_arm(ral, arm_name: str) -> dvrk.arm:
     upper_name = arm_name.upper()
     if upper_name.startswith('ECM'):
         return dvrk.ecm(ral, arm_name)
-    if upper_name.startswith('PSM'):
+    elif upper_name.startswith('PSM'):
         return dvrk.psm(ral, arm_name)
-    if upper_name.startswith('MTM'):
+    elif upper_name.startswith('MTM'):
         return dvrk.mtm(ral, arm_name)
+    else:
+        return None
 
-    raise ValueError(f'Unsupported arm type in config: {arm_name}')
 
-
-def home_all(console):
+def home_all(console: dvrk.console, config: dict) -> None:
     console.power_on()
     console.home()
 
+    if 'teleop_scale' in config:
+        console.teleop_set_scale(config['teleop_scale'])
 
-def is_homed(arms):
+
+def is_homed(arms: dict) -> bool:
     return all(arm.is_homed() for arm in arms.values())
 
 
-def move(arms, config):
+def move(arms: dict, config: dict) -> None:
     for arm_name, arm in arms.items():
         target = config[arm_name]
 
@@ -99,7 +107,7 @@ def move(arms, config):
             arm.move_cp(se3_to_frame(np_to_se3(target['cp'])))
 
 
-def check(arms, config, threshold=5e-2):
+def check(arms: dict, config: dict, threshold: float = 5e-2) -> bool:
     for arm_name, arm in arms.items():
         target = config[arm_name]
 
@@ -127,7 +135,7 @@ def check(arms, config, threshold=5e-2):
     return True
 
 
-def jp_config_to_command(jp_config):
+def jp_config_to_command(jp_config: list) -> np.ndarray:
     jp_command = np.asarray(jp_config, dtype=float).copy()
     if jp_command.size >= 2:
         jp_command[:2] = np.deg2rad(jp_command[:2])
@@ -138,7 +146,7 @@ def jp_config_to_command(jp_config):
     return jp_command
 
 
-def np_to_se3(matrix):
+def np_to_se3(matrix) -> SE3:
     return SE3(np.asarray(matrix, dtype=float))
 
 
