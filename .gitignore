@@ -4,6 +4,7 @@ test
 *.npy
 tf_static
 tf_static/*
+dvrk_configs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
