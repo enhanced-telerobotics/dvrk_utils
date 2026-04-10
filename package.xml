@@ -3,9 +3,14 @@
 <package format="3">
   <name>dvrk_utils</name>
   <version>0.1.0</version>
-  <description>Utilities for working with the dVRK (da Vinci Research Kit) in ROS 2.</description>
+  <description>Utilities for controlling arm topics and TF helpers in ROS 2.</description>
   <maintainer email="sxy841@case.edu">erie_lab</maintainer>
   <license>MIT</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
