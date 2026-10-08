@@ -106,6 +106,42 @@ ros2 launch dvrk_utils board_publisher.launch.py
 
 This will publish the transform defined in the `ECM_base_T_Board.npy` file located in the `resource` directory.
 
+### 4. Robot Initialization
+
+```bash
+ros2 launch dvrk_utils init_robot.launch.py json:=bimanual
+```
+
+Joint targets are reached when the sum of absolute joint errors is below
+`0.10` for MTML/MTMR and `0.05` for other arms. To override the limit, add
+`"jp_threshold": 0.12` beside `"jp"` in the relevant arm's config in
+`~/.ros/dvrk_configs/bimanual.json`. The threshold uses command units
+(radians for rotational joints, meters for insertion), rather than the
+degrees and millimeters used by the target config. Jaw and Cartesian
+tolerances are unchanged.
+
+### 5. Save Current Robot Pose
+
+Create or update an initialization config from measured positions:
+
+```bash
+ros2 run dvrk_utils save_robot --json bimanual
+ros2 run dvrk_utils save_robot --json bimanual --arms MTML MTMR --decimals 1
+ros2 run dvrk_utils save_robot --config-json /tmp/current_pose.json
+```
+
+Existing configs determine the default arm list; new configs capture ECM,
+PSM1, PSM2, MTMR, and MTML. Joint values use the existing initialization
+convention (degrees, with the third element in millimeters), rounded to
+whole numbers by default. PSM jaw angles are also saved in degrees.
+Existing Cartesian targets are updated from measured poses, rounded to
+six decimal places. Other config settings and unselected arms are preserved.
+JSON5 input is accepted; output is formatted JSON, so comments are removed.
+An existing file is copied to `<filename>.bak` before replacement (the backup
+is replaced on each save). Missing measurements abort the save after
+`--timeout 10` seconds without modifying the file. The command only reads
+robot measurements and does not command motion.
+
 ## License
 
 TODO: Add license information.

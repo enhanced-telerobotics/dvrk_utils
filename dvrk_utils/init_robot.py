@@ -33,9 +33,11 @@ def main(config_json: Optional[str] = None) -> None:
 
     try:
         node.run()
+    except KeyboardInterrupt:
+        pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()
 
 
 def parse_args() -> argparse.Namespace:
@@ -187,16 +189,23 @@ class ArmTopicController(Node):
                     continue
                 measured_jp = np.asarray(measured_js.position, dtype=float)
                 expected_jp = jp_config_to_command(target['jp'])
+                jp_threshold = float(target.get(
+                    'jp_threshold',
+                    0.10 if arm_name in ('MTML', 'MTMR') else joint_threshold,
+                ))
+                if not np.isfinite(jp_threshold) or jp_threshold <= 0:
+                    raise ValueError(f'{arm_name}: jp_threshold must be positive and finite')
                 if measured_jp.shape != expected_jp.shape:
                     self.get_logger().warning(
                         f'{arm_name}: target jp not reached, '
                         f'shape mismatch measured={measured_jp.shape} expected={expected_jp.shape}')
                     all_reached = False
+                    continue
                 jp_error = float(np.abs(measured_jp - expected_jp).sum())
-                if jp_error >= joint_threshold:
+                if jp_error >= jp_threshold:
                     self.get_logger().warning(
                         f'{arm_name}: target jp not reached, error={jp_error:.6f}, '
-                        f'threshold={joint_threshold:.6f}')
+                        f'threshold={jp_threshold:.6f}')
                     all_reached = False
 
             if 'jaw_jp' in target:
