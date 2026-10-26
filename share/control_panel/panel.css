@@ -1,0 +1,129 @@
+:root {
+  color-scheme: light;
+  --background: #f4f6f8; --surface: #fff; --text: #172b38; --muted: #667782;
+  --line: #e4eaee; --accent: #087f85; --accent-soft: #e4f3f2; --green: #13734d;
+  --green-soft: #e5f4ec; --red: #b9383f; --red-soft: #fbecee;
+  --orange: #9b660b; --orange-soft: #fff3d9; --neutral: #edf1f4;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #10191f; --surface: #1b272f; --text: #edf4f6; --muted: #a7b8c2;
+  --line: #30414c; --accent: #66d4cf; --accent-soft: #243f43; --green: #79d6ad;
+  --green-soft: #223d34; --red: #ff9ba0; --red-soft: #472d35;
+  --orange: #efc577; --orange-soft: #443b29; --neutral: #2c3b45;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--background); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; }
+button, input { font: inherit; }
+button { cursor: pointer; min-height: 44px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--text); padding: 8px 12px; font-weight: 600; touch-action: manipulation; }
+button:disabled { opacity: .42; cursor: default; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+button:not(:disabled):active { transform: translateY(1px); }
+h1, h2, p { margin: 0; }
+.shell { min-height: 100dvh; max-width: 1600px; margin: auto; padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)); }
+.topbar, .brand, .header-actions, .card-heading, .session-bar, .slider-heading, footer { display: flex; align-items: center; justify-content: space-between; }
+.topbar { margin-bottom: 4px; gap: 12px; }
+.brand { gap: 12px; }
+.brand-mark { display: grid; place-items: center; width: 40px; height: 40px; background: var(--accent); color: var(--surface); border-radius: 14px; font-size: 22px; font-weight: 700; }
+h1 { font-size: 21px; letter-spacing: -.6px; }
+.brand p { margin-top: 3px; color: var(--muted); font-size: 13px; }
+.header-actions { gap: 14px; }
+.icon-button { font-size: 23px; padding: 4px; width: 44px; }
+.connection { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.connection::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+.connection.offline { color: var(--muted); }
+.connection.offline::before { background: var(--red); }
+.session-bar { background: var(--accent-soft); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; gap: 12px; }
+.session-bar p { color: var(--muted); font-size: 13px; margin-top: 2px; line-height: 1.3; }
+.primary { background: var(--accent); color: var(--surface); border-color: transparent; white-space: nowrap; }
+.notice { min-height: 28px; padding: 5px 2px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.notice.error { color: var(--red); }
+.panel { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: 10px; }
+.right-column { display: grid; gap: 10px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.card-heading { gap: 8px; margin-bottom: 8px; }
+.eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 7px; }
+h2 { font-size: 19px; font-weight: 650; letter-spacing: -.5px; }
+.badge { display: inline-block; padding: 4px 6px; border-radius: 7px; font-size: 10px; font-weight: 700; letter-spacing: .5px; white-space: nowrap; }
+.badge.green { color: var(--green); background: var(--green-soft); }
+.badge.red { color: var(--red); background: var(--red-soft); }
+.badge.orange { color: var(--orange); background: var(--orange-soft); }
+.badge.neutral { color: var(--muted); background: var(--neutral); }
+.system-button { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; background: var(--background); margin-bottom: 4px; }
+.power-symbol { font-size: 24px; line-height: 1; }
+.row { padding: 7px 0; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; min-height: 62px; }
+.row:last-child { border-bottom: 0; padding-bottom: 2px; }
+.row-info { flex: 1; min-width: 0; }
+.row-title { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.row-title strong { font-size: 14px; overflow-wrap: anywhere; }
+.row-detail { margin-top: 3px; font-size: 11px; line-height: 1.3; color: var(--muted); overflow-wrap: anywhere; }
+.row-tool { margin-top: 2px; font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+.row-action { min-width: 44px; padding: 8px; font-size: 13px; }
+.reset-failed { color: var(--red); }
+.reset-done { color: var(--green); }
+.empty { color: var(--muted); font-size: 13px; line-height: 1.7; padding: 10px 0 2px; }
+.slider-heading { margin-bottom: 0; font-size: 13px; font-weight: 600; }
+output { color: var(--accent); font-size: 18px; font-variant-numeric: tabular-nums; }
+input[type="range"] { width: 100%; margin: 0; height: 44px; accent-color: var(--accent); touch-action: pan-y; }
+.range-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+.volume-heading { margin-top: 0; }
+footer { margin-top: 8px; color: var(--muted); font-size: 11px; gap: 12px; }
+.stale .rows, .stale .badge { opacity: .5; }
+.pairing { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+.pairing label { display: block; margin-bottom: 0; font-size: 13px; }
+.pairing-input { display: flex; gap: 10px; }
+.pairing input { min-width: 0; width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--background); color: var(--text); padding: 12px; font-size: 14px; }
+.hidden { display: none !important; }
+/* Compact tablet layout keeps all controls in the normal page flow. */
+.card, .right-column, .slider-group { min-width: 0; }
+.eyebrow { display: none; }
+.row-detail:empty, .row-tool:empty { display: none; }
+.slider-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 599px) {
+  .shell { padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+  .panel { grid-template-columns: minmax(0, 1fr); }
+  .session-bar strong { font-size: 13px; }
+  .session-bar p { font-size: 12px; }
+  .session-bar button { font-size: 12px; }
+  .brand p { display: none; }
+}
+@media (max-width: 359px) {
+  .slider-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .session-bar { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) { button:not(:disabled):active { transform: none; } }
+
+/* Use the browser viewport, which already excludes tabs and browser toolbars.
+   Multi-column arm rows avoid making the arm list the height of the page. */
+@media (min-width: 900px), (min-width: 700px) and (max-height: 760px) {
+  .panel { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+  #arms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; }
+  #arms .row { min-width: 0; padding: 6px 0; min-height: 64px; }
+  #arms .row:last-child { padding-bottom: 6px; }
+  #arms .row-title { gap: 4px 6px; }
+  #arms .row-action { font-size: 12px; }
+}
+@media (min-width: 700px) and (max-height: 760px) {
+  .shell { padding-top: max(6px, env(safe-area-inset-top)); padding-bottom: max(6px, env(safe-area-inset-bottom)); }
+  .brand p { display: none; }
+  .session-bar { padding: 4px 10px; }
+  .session-bar p { font-size: 12px; }
+  .notice { min-height: 24px; padding: 2px; }
+  .card { padding: 10px; }
+  .card-heading { margin-bottom: 4px; }
+  .row { min-height: 56px; padding: 4px 0; }
+  footer { margin-top: 4px; }
+}
+@media (min-width: 700px) and (max-height: 600px) {
+  .shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); column-gap: 10px; align-content: start; }
+  .topbar { margin: 0; gap: 8px; }
+  .brand { gap: 6px; }
+  .brand-mark { display: none; }
+  .header-actions { gap: 8px; }
+  .pairing, .notice, .panel, footer { grid-column: 1 / -1; }
+  #arms .row { min-height: 60px; padding: 4px 0; }
+  #arms .row:last-child { padding-bottom: 4px; }
+}
+@media (min-width: 700px) and (max-height: 600px) {
+  #teleops .row { min-height: 49px; padding: 2px 0; }
+}

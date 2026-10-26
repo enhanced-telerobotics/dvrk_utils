@@ -1,152 +1,105 @@
-# DVRK Utils
+# dVRK Utils
 
-This package provides utilities for working with the dVRK (da Vinci Research Kit) in ROS 2. It includes tools for publishing and retrieving transforms between frames using static and dynamic TF2.
+ROS 2 utilities for browser-based control, robot pose configuration, and TF transforms.
 
-## Features
+## Build
 
-- **TF Listener**: Retrieve and display transforms between frames.
-- **TF Publisher**: Publish static transforms from a 4x4 transformation matrix file.
-- **Launch File**: Automate the publishing of static transforms using a launch file.
-
-## Installation
-
-Ensure you have ROS 2 installed and sourced. Clone this repository into your ROS 2 workspace and build it:
+From your ROS 2 workspace, with ROS sourced:
 
 ```bash
-cd ~/ros2_ws/src
-# Clone the repository here
+cd ~/ros2_ws
+rosdep install --from-paths src/dvrk_utils --ignore-src -r -y
 colcon build --packages-select dvrk_utils
-source ~/ros2_ws/install/setup.bash
+source install/setup.bash
 ```
 
-## Usage
+## Control panel
 
-### 1. TF Listener
-
-#### a. Use the node instance
-```
-from spatialmath import SE3, SO3
-
-from dvrk_utils.tf_listener import TransformRetriever
-from dvrk_utils.utils import (
-    stamped_to_se3,
-    frame_to_se3,
-    se3_to_frame,
-)
-```
-
-```
-node = TransformRetriever()
-camera_T_center = stamped_to_se3(node.get_transform("ECM", "Center"))
-
-center_T_peg1 = SE3.Rx(np.pi)
-center_T_peg1.t[0] += 0.0125
-
-camera_T_peg1 = camera_T_center @ center_T_peg1
-psm1.move_cp(se3_to_frame(camera_T_peg1))
-```
-
-#### b. Check though CLI
-
-The `tf_listener` node retrieves and displays the transform between two frames. Example usage:
+Start the normal dVRK ROS system, then run:
 
 ```bash
-ros2 run dvrk_utils tf_listener <parent_frame> <child_frame>
+ros2 run dvrk_utils control_panel
 ```
 
-#### Example:
+Connect your phone or computer to the same network, scan the QR code in the
+PC window, and choose **Take control** in the browser. The panel provides arm
+status, power, homing, reset, teleoperation, motion scale, and volume controls.
+Video streaming is not included.
 
 ```bash
-ros2 run dvrk_utils tf_listener ECM_base Board
+# Select the PC address shown in the QR code.
+ros2 run dvrk_utils control_panel --advertise-address 192.168.1.20
+
+# Set the console namespace or reuse a panel JSON config.
+ros2 run dvrk_utils control_panel -C console
+ros2 run dvrk_utils control_panel -c panel.json
+
+# Run without the PC window.
+ros2 run dvrk_utils control_panel --headless --port 8081
 ```
 
-Output:
+The server listens on `0.0.0.0:8080` by default. Use `--host` to select a
+specific interface. Close the PC window or press Ctrl+C to stop it.
+Only one browser can control the robot at a time. Disconnecting keeps control
+reserved; release it in that browser or use **Regenerate connection / release
+control** on the PC. Regeneration invalidates previous links and sessions.
+The pairing token is saved in `~/.config/dvrk_utils/control_panel.token`
+(or under `$XDG_CONFIG_HOME`) and reused after restarts. To explicitly replace
+it from the terminal, run `ros2 run dvrk_utils control_panel --reset-pairing`.
+The link and QR stay the same while the advertised hostname and port stay the same.
 
+Settings are read from `~/.config/dvrk_utils/control_panel.json` (or under
+`$XDG_CONFIG_HOME`), created automatically on first run:
+
+```json
+{"hostname": "robot-pc.local", "host": "0.0.0.0", "port": 8080, "console": "console"}
 ```
-[INFO] [<timestamp>] [transform_retriever]: Transform from ECM_base to Board: 
-  -0.9989    0.02241   0.04148   0.2635    
-  -0.01309   0.7134   -0.7006    0.1855    
-  -0.0453   -0.7004   -0.7123    0.01187   
-   0         0         0         1         
-```
 
-### 2. TF Publisher
+The default `hostname` is empty: the panel uses the first alias from `hostname -a`,
+or the PC hostname when there are no aliases. The tablet must be able to resolve
+that name. CLI options override the file; `-c` selects a different JSON file.
+Use `--advertise-address` to use an IP address instead.
 
-The `tf_publisher` node publishes a static transform from a 4x4 transformation matrix file. Example usage:
+Use a trusted local network: HTTP traffic is not encrypted. A wireless
+disconnection does not stop the robot; use the existing dVRK emergency stop.
+The panel requires `rclpy`, `crtk_msgs`, and `aiohttp`; the QR window also uses
+GTK, Pillow, and `qrcode`. These dependencies are declared in `package.xml`.
+
+## Robot poses
 
 ```bash
-ros2 run dvrk_utils tf_publisher <transform_file>
-```
-
-#### Example:
-
-```bash
-ros2 run dvrk_utils tf_publisher /home/erie_lab/ros2_ws/src/dvrk_utils/resource/ECM_base_T_Board.npy
-```
-
-### Transform File Naming Convention
-
-The `transform_file` should follow the naming convention `<parent_frame>_T_<child_frame>.npy`. This format is essential for the `tf_publisher` node to correctly extract the parent and child frame names from the file name.
-
-#### Example:
-
-For a file named `ECM_base_T_Board.npy`:
-- `parent_frame`: `ECM_base`
-- `child_frame`: `Board`
-
-The file must contain a 4x4 homogeneous transformation matrix representing the transform from the `parent_frame` to the `child_frame`. Ensure the file is saved in `.npy` format and placed in the appropriate directory (e.g., `resource/`).
-
-### 3. Launch File
-
-The `board_publisher.launch.py` file automates the publishing of a static transform. Example usage:
-
-```bash
-ros2 launch dvrk_utils board_publisher.launch.py
-```
-
-This will publish the transform defined in the `ECM_base_T_Board.npy` file located in the `resource` directory.
-
-### 4. Robot Initialization
-
-```bash
+# Initialize from ~/.ros/dvrk_configs/bimanual.json.
 ros2 launch dvrk_utils init_robot.launch.py json:=bimanual
-```
 
-Joint targets are reached when the sum of absolute joint errors is below
-`0.10` for MTML/MTMR and `0.05` for other arms. To override the limit, add
-`"jp_threshold": 0.12` beside `"jp"` in the relevant arm's config in
-`~/.ros/dvrk_configs/bimanual.json`. The threshold uses command units
-(radians for rotational joints, meters for insertion), rather than the
-degrees and millimeters used by the target config. Jaw and Cartesian
-tolerances are unchanged.
-
-### 5. Save Current Robot Pose
-
-Create or update an initialization config from measured positions:
-
-```bash
+# Save measured positions to an initialization config.
 ros2 run dvrk_utils save_robot --json bimanual
 ros2 run dvrk_utils save_robot --json bimanual --arms MTML MTMR --decimals 1
 ros2 run dvrk_utils save_robot --config-json /tmp/current_pose.json
 ```
 
-Existing configs determine the default arm list; new configs capture ECM,
-PSM1, PSM2, MTMR, and MTML. Joint values use the existing initialization
-convention (degrees, with the third element in millimeters), rounded to
-whole numbers by default. PSM jaw angles are also saved in degrees.
-Existing Cartesian targets are updated from measured poses, rounded to
-six decimal places. Other config settings and unselected arms are preserved.
-JSON5 input is accepted; output is formatted JSON, so comments are removed.
-An existing file is copied to `<filename>.bak` before replacement (the backup
-is replaced on each save). Missing measurements abort the save after
-`--timeout 10` seconds without modifying the file. The command only reads
-robot measurements and does not command motion.
+Initialization uses summed joint-error limits of `0.10` for MTML/MTMR and
+`0.05` for other arms. Override an arm's limit with `"jp_threshold"` beside
+`"jp"` in its config. Limits use radians and meters; target configs use degrees
+and millimeters.
 
-## License
+Saving only reads measurements. It preserves other settings and unselected
+arms, backs up an existing file to `<filename>.bak`, and aborts on missing
+measurements. Joint and jaw values use degrees, with the third joint in
+millimeters. JSON5 input is accepted; output is JSON without comments.
 
-TODO: Add license information.
+## TF utilities
 
-## Maintainer
+```bash
+ros2 run dvrk_utils tf_listener ECM_base Board
+ros2 run dvrk_utils tf_publisher /path/to/ECM_base_T_Board.npy
+ros2 launch dvrk_utils board_publisher.launch.py
+```
 
-- **Erie Lab**  
-  Email: sxy841@case.edu
+Transform files contain a 4×4 homogeneous matrix and must be named
+`<parent_frame>_T_<child_frame>.npy` so the publisher can infer the frames.
+
+For Python use, import `TransformRetriever` from `dvrk_utils.tf_listener`.
+Conversion helpers `stamped_to_se3`, `frame_to_se3`, and `se3_to_frame` are
+available from `dvrk_utils.utils`.
+
+Maintainer: Erie Lab · sxy841@case.edu

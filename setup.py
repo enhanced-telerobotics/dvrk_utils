@@ -12,6 +12,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', glob('launch/*.launch.py')),
+        ('share/' + package_name + '/control_panel', glob('share/control_panel/*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -22,6 +23,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'control_panel = dvrk_utils.control_panel.main:main',
             'tf_listener = dvrk_utils.tf_listener:main',
             'tf_publisher = dvrk_utils.tf_publisher:main',
             'init_robot = dvrk_utils.init_robot:main',
